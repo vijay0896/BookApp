@@ -106,7 +106,7 @@ const AddEbookScreen = () => {
 
           <TextInput
             mode="outlined"
-            label="Category"
+            label="Genre"
             value={formData.genre}
             onChangeText={(text) => handleChange("genre", text)}
             style={styles.input}
