@@ -27,7 +27,7 @@ const AddResaleBookScreen = () => {
     description: "",
     cover_image: null,
     price: "",
-    availability: "in stock",
+    availability: "available",
     status: "available",
   });
 
@@ -84,17 +84,10 @@ const AddResaleBookScreen = () => {
             style={styles.input}
           />
 
+          
           <TextInput
             mode="outlined"
-            label="Condition (e.g. Like New)"
-            value={formData.status}
-            onChangeText={(text) => handleChange("status", text)}
-            style={styles.input}
-          />
-
-          <TextInput
-            mode="outlined"
-            label="Category"
+            label="Genre"
             value={formData.genre}
             onChangeText={(text) => handleChange("genre", text)}
             style={styles.input}
@@ -144,3 +137,10 @@ const AddResaleBookScreen = () => {
 
 
 export default AddResaleBookScreen;
+{/* <TextInput
+            mode="outlined"
+            label="Condition (e.g. Like New)"
+            value={formData.status}
+            onChangeText={(text) => handleChange("status", text)}
+            style={styles.input}
+          /> */}
