@@ -73,8 +73,9 @@ export const deleteBook = async (bookId) => {
   }
 };
 
-// ✏️ Update book (PUT)
+
 export const updateBook = async (bookId, updatedBook) => {
+  const url = `${BASE_URLS}/api/books/${bookId}`;
   try {
     const token = await AsyncStorage.getItem("authToken");
     if (!token) throw new Error("No auth token found");
@@ -86,35 +87,97 @@ export const updateBook = async (bookId, updatedBook) => {
     formData.append("price", updatedBook.price);
     formData.append("genre", updatedBook.genre);
 
-    if (
-      updatedBook.cover_image_url &&
-      updatedBook.cover_image_url.startsWith("file")
-    ) {
-      const filename = updatedBook.cover_image_url.split("/").pop();
+    // Cover image
+    if (updatedBook.cover_image) {
+      let uri = updatedBook.cover_image.uri;
+
+      // Android might return content:// URI, convert if needed
+      if (!uri.startsWith("file://")) uri = "file://" + uri.split("file:/").pop();
+
+      const filename = uri.split("/").pop();
       const match = /\.(\w+)$/.exec(filename || "");
-      const type = match ? `image/${match[1]}` : `image`;
+      const type = match ? `image/${match[1]}` : "image";
 
       formData.append("cover_image", {
-        uri: updatedBook.cover_image_url,
+        uri,
         name: filename,
         type,
       });
     }
 
-    const url = `${BASE_URLS}/api/books/${bookId}`;
+    // PDF file
+    if (updatedBook.pdf) {
+      let uri = updatedBook.pdf.uri;
+      if (!uri.startsWith("file://")) uri = "file://" + uri.split("file:/").pop();
+
+      const filename = updatedBook.pdf.name || "ebook.pdf";
+      formData.append("pdf", {
+        uri,
+        name: filename,
+        type: "application/pdf",
+      });
+    }
 
     const response = await axios.put(url, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        // "Content-Type": "multipart/form-data", // let axios handle it
+        "Content-Type": "multipart/form-data", // enforce correct header
       },
     });
 
     Alert.alert("Success", "Book updated successfully");
     return { success: true, data: response.data };
   } catch (error) {
-    console.error("Update error:", error);
+    console.error("Update error:", error?.response || error?.message || error);
+    console.log("Request URL:", url);
     Alert.alert("Error", "Failed to update book. Please try again.");
     return { success: false };
   }
 };
+
+
+// export const updateBook = async (bookId, updatedBook) => {
+//   const url = `${BASE_URLS}/api/books/${bookId}`;
+//   try {
+//     const token = await AsyncStorage.getItem("authToken");
+//     if (!token) throw new Error("No auth token found");
+
+//     const formData = new FormData();
+//     formData.append("title", updatedBook.title);
+//     formData.append("author", updatedBook.author);
+//     formData.append("description", updatedBook.description);
+//     formData.append("price", updatedBook.price);
+//     formData.append("genre", updatedBook.genre);
+
+//     // If the cover image is a new local file, append it
+//     if (
+//       updatedBook.cover_image_url &&
+//       updatedBook.cover_image_url.startsWith("file")
+//     ) {
+//       const filename = updatedBook.cover_image_url.split("/").pop();
+//       const match = /\.(\w+)$/.exec(filename || "");
+//       const type = match ? `image/${match[1]}` : `image`;
+
+//       formData.append("cover_image", {
+//         uri: updatedBook.cover_image_url,
+//         name: filename,
+//         type,
+//       });
+//     }
+
+//     const response = await axios.put(url, formData, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//         // "Content-Type" is automatically set when using FormData in axios
+//       },
+//     });
+
+//     Alert.alert("Success", "Book updated successfully");
+//     return { success: true, data: response.data };
+//   } catch (error) {
+//     console.error("Update error:", error?.response || error?.message || error);
+//     console.log("Request URL:", url);
+//     Alert.alert("Error", "Failed to update book. Please try again.");
+//     return { success: false };
+//   }
+// };

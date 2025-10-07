@@ -250,6 +250,7 @@ const style = StyleSheet.create({
   },
   searchbar: {
     width: "100%",
+    height:50,
     borderRadius: 15,
     backgroundColor: "#F8F9FC",
     borderWidth: 1,
@@ -275,3 +276,5 @@ const style = StyleSheet.create({
 });
 
 export default HomeScreen;
+
+

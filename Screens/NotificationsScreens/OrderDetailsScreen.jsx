@@ -8,64 +8,85 @@ const OrderDetailsScreen = ({ route }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "approved":
-        return "#27AE60"; // Green for approved
+        return "#10B981";
       case "denied":
-        return "#E74C3C"; // Red for denied
+        return "#EF4444";
       default:
-        return "#F39C12"; // Yellow for pending
+        return "#F59E0B";
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* <Text style={styles.mainHeading}>Order Details</Text> */}
-
-      <View style={styles.card}>
-        <Text style={styles.sectionHeading}>📚 Book Details</Text>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Title</Text>
-          <Text style={styles.value}>{order.title}</Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Price</Text>
-          <Text style={styles.value}>₹
-                {order.service_type === "rental"
-                  ? order.rental_price != null
-                    ? order.rental_price
-                    : "Not for rent"
-                  : order.price != null
-                  ? order.price
-                  : "Not for sale"}</Text>
-        </View>
-
-        <View style={styles.row}>
-          <Text style={styles.label}>Status</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
-            <Text style={styles.statusText}>
-              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+      {/* Book Details Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Book Details</Text>
+        
+        <View style={styles.infoCard}>
+          <Text style={styles.bookTitle}>{order.title}</Text>
+          
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Price</Text>
+            <Text style={styles.priceValue}>
+              ₹{order.service_type === "rental"
+                ? order.rental_price != null
+                  ? order.rental_price
+                  : "Not for rent"
+                : order.price != null
+                ? order.price
+                : "Not for sale"}
             </Text>
+          </View>
+
+          <View style={styles.statusRow}>
+            <Text style={styles.statusLabel}>Status</Text>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) }]}>
+              <Text style={styles.statusText}>
+                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.sectionHeading}>👤 Seller Details</Text>
+      {/* Seller Details Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Seller Details</Text>
+        
+        <View style={styles.infoCard}>
+          <View style={styles.detailItem}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="person-outline" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Name</Text>
+              <Text style={styles.detailValue}>{order.seller_name}</Text>
+            </View>
+          </View>
 
-        <View style={styles.detailRow}>
-          <Ionicons name="person-outline" size={20} color="#7F8C8D" />
-          <Text style={styles.detailText}>{order.seller_name}</Text>
-        </View>
+          <View style={styles.divider} />
 
-        <View style={styles.detailRow}>
-          <Ionicons name="call-outline" size={20} color="#7F8C8D" />
-          <Text style={styles.detailText}>{order.seller_phone}</Text>
-        </View>
+          <View style={styles.detailItem}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="call-outline" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Phone</Text>
+              <Text style={styles.detailValue}>{order.seller_phone}</Text>
+            </View>
+          </View>
 
-        <View style={styles.detailRow}>
-          <Ionicons name="location-outline" size={20} color="#7F8C8D" />
-          <Text style={styles.detailText}>{order.seller_location}</Text>
+          <View style={styles.divider} />
+
+          <View style={styles.detailItem}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="location-outline" size={20} color="#6B7280" />
+            </View>
+            <View style={styles.detailContent}>
+              <Text style={styles.detailLabel}>Location</Text>
+              <Text style={styles.detailValue}>{order.seller_location}</Text>
+            </View>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -75,78 +96,113 @@ const OrderDetailsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#F4F6F8",
-    padding: 16,
+    backgroundColor: "#F9FAFB",
+    padding: 20,
     paddingBottom: 40,
   },
-  mainHeading: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#2C3E50",
-    textAlign: "center",
-    marginBottom: 20,
-    fontFamily: "Roboto", // Modern font
+  section: {
+    marginBottom: 24,
   },
-  card: {
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  infoCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 20,
-    marginBottom: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5, // Modern shadow for Android
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  sectionHeading: {
+  bookTitle: {
     fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 12,
-    color: "#34495E",
-    fontFamily: "Roboto", // Modern font
+    fontWeight: "700",
+    color: "#111827c5",
+    marginBottom: 20,
+    lineHeight: 30,
   },
-  row: {
+  priceRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
   },
-  label: {
-    fontSize: 16,
-    color: "#7F8C8D",
-    fontWeight: "600",
-    fontFamily: "Roboto", // Modern font
-  },
-  value: {
-    fontSize: 16,
-    color: "#2C3E50",
+  priceLabel: {
+    fontSize: 14,
+    color: "#6B7280",
     fontWeight: "500",
-    textAlign: "right",
-    maxWidth: "60%",
-    fontFamily: "Roboto", // Modern font
+  },
+  priceValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827c5",
+  },
+  statusRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  statusLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
   },
   statusBadge: {
     paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    borderRadius: 12,
   },
   statusText: {
-    color: "#fff",
-    fontSize: 14,
+    color: "#FFFFFF",
+    fontSize: 12,
     fontWeight: "600",
-    fontFamily: "Roboto", // Modern font
+    letterSpacing: 0.3,
   },
-  detailRow: {
+  detailItem: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
+    alignItems: "flex-start",
+    paddingVertical: 12,
   },
-  detailText: {
-    fontSize: 16,
-    color: "#2C3E50",
-    marginLeft: 12,
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  detailContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  detailLabel: {
+    fontSize: 13,
+    color: "#9CA3AF",
     fontWeight: "500",
-    fontFamily: "Roboto", // Modern font
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 15,
+    color: "#111827c5",
+    fontWeight: "600",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#F3F4F6",
+    marginVertical: 4,
   },
 });
 

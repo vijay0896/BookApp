@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
@@ -10,38 +11,40 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Button, Dialog, Portal, Provider } from "react-native-paper";
-import { MaterialIcons, Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { BASE_URLS } from "../Utils/config";
 import * as Location from "expo-location";
+
 const ProfileScreen = ({ navigation, route }) => {
-  const { setLoggedIn } = route.params; // Get setLoggedIn from HomeTabs
+  const { setLoggedIn } = route.params;
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imageUpdating, setImageUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  // const [editedUser, setEditedUser] = useState({});
   const [visible, setVisible] = useState(false);
+  const [editedUser, setEditedUser] = useState({ latitude: "", longitude: "" });
 
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
-  const [editedUser, setEditedUser] = useState({ latitude: "", longitude: "" });
 
   useEffect(() => {
     fetchUserDetails();
   }, []);
+
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("authToken");
-      route.params.setLoggedIn(false); // Update isLoggedIn in App.js
+      route.params.setLoggedIn(false);
       hideDialog();
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
+
   const fetchUserDetails = async () => {
     try {
       const token = await AsyncStorage.getItem("authToken");
@@ -55,7 +58,6 @@ const ProfileScreen = ({ navigation, route }) => {
       setEditedUser(response.data);
       setLoading(false);
     } catch (error) {
-      // console.error("Error fetching user details:", error);
       setLoading(false);
     }
   };
@@ -63,10 +65,7 @@ const ProfileScreen = ({ navigation, route }) => {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Permission Required",
-        "Please allow access to your gallery."
-      );
+      Alert.alert("Permission Required", "Please allow access to your gallery.");
       return;
     }
 
@@ -84,6 +83,7 @@ const ProfileScreen = ({ navigation, route }) => {
       setImageUpdating(false);
     }
   };
+
   const getCurrentLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
@@ -101,7 +101,6 @@ const ProfileScreen = ({ navigation, route }) => {
     }));
 
     Alert.alert("Location Updated", `Lat: ${latitude}, Long: ${longitude}`);
-    console.log(`Lat: ${latitude} And  Long: ${longitude}`);
   };
 
   const handleUpdateProfile = async (updatedData) => {
@@ -111,21 +110,14 @@ const ProfileScreen = ({ navigation, route }) => {
 
       const formData = new FormData();
 
-      // Append only the fields that are being updated
       if (updatedData.name) formData.append("name", updatedData.name);
       if (updatedData.email) formData.append("email", updatedData.email);
       if (updatedData.phone) formData.append("phone", updatedData.phone);
       if (updatedData.address) formData.append("address", updatedData.address);
-      if (updatedData.latitude)
-        formData.append("latitude", updatedData.latitude);
-      if (updatedData.longitude)
-        formData.append("longitude", updatedData.longitude);
+      if (updatedData.latitude) formData.append("latitude", updatedData.latitude);
+      if (updatedData.longitude) formData.append("longitude", updatedData.longitude);
 
-      // If a new profile image is uploaded
-      if (
-        updatedData.profileImage &&
-        updatedData.profileImage.startsWith("file://")
-      ) {
+      if (updatedData.profileImage && updatedData.profileImage.startsWith("file://")) {
         formData.append("profileImage", {
           uri: updatedData.profileImage,
           name: "profile.jpg",
@@ -133,245 +125,220 @@ const ProfileScreen = ({ navigation, route }) => {
         });
       }
 
-      const response = await axios.patch(
-        `${BASE_URLS}/api/users/updateUser`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.patch(`${BASE_URLS}/api/users/updateUser`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       Alert.alert("Success", "Profile updated successfully");
-      fetchUserDetails(); // Refresh user data
+      fetchUserDetails();
       setIsEditing(false);
     } catch (error) {
-      console.error(
-        "❌ Error updating profile:",
-        error.response?.data || error.message
-      );
+      console.error("Error updating profile:", error.response?.data || error.message);
       Alert.alert("Error", "Failed to update profile");
     }
   };
 
-  const SkeletonProfile = () => (
-    <View style={{ alignItems: "center", width: "100%" }}>
-      <View
-        style={{
-          width: 100,
-          height: 100,
-          borderRadius: 50,
-          backgroundColor: "#E1E9EE",
-          marginBottom: 20,
-        }}
-      />
-      {[...Array(4)].map((_, i) => (
-        <View
-          key={i}
-          style={{
-            width: "100%",
-            height: 50,
-            borderRadius: 10,
-            backgroundColor: "#E1E9EE",
-            marginBottom: 12,
-          }}
-        />
-      ))}
-      <View
-        style={{
-          width: "100%",
-          height: 45,
-          borderRadius: 8,
-          backgroundColor: "#E1E9EE",
-          marginTop: 20,
-        }}
-      />
-      <View
-        style={{
-          width: "100%",
-          height: 45,
-          borderRadius: 8,
-          backgroundColor: "#E1E9EE",
-          marginTop: 10,
-        }}
-      />
-    </View>
-  );
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#6366F1" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={styles.centered}>
+        <Ionicons name="alert-circle-outline" size={64} color="#D1D5DB" />
+        <Text style={styles.errorText}>Failed to load profile</Text>
+        <TouchableOpacity style={styles.logoutBtn} onPress={showDialog}>
+          <Text style={styles.logoutBtnText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <Provider>
       <Portal>
-        <View style={styles.container}>
-          {loading ? (
-            // <ActivityIndicator size="large" color="#007BFF" />
-            <SkeletonProfile />
-          ) : user ? (
-            <>
-              {/* Profile Image */}
-              <View style={styles.profileContainer}>
-                <Image
-                  source={{
-                    uri:
-                      editedUser.profileImage ||
-                      "https://via.placeholder.com/150/007BFF/FFFFFF?text=User",
-                  }}
-                  style={styles.profileImage}
-                />
-                {isEditing && ( // Show the edit icon only when editing mode is enabled
-                  <TouchableOpacity style={styles.editIcon} onPress={pickImage}>
-                    <Feather name="edit" size={16} color="white" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Profile Fields */}
-              <View style={styles.inputContainer}>
-                <MaterialIcons name="person-outline" size={20} color="#999" />
-                <TextInput
-                  style={styles.input}
-                  value={editedUser.name}
-                  onChangeText={(text) =>
-                    setEditedUser({ ...editedUser, name: text })
-                  }
-                  editable={isEditing}
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <MaterialIcons name="email" size={20} color="#999" />
-                <TextInput
-                  style={styles.input}
-                  value={editedUser.email}
-                  onChangeText={(text) =>
-                    setEditedUser({ ...editedUser, email: text })
-                  }
-                  editable={isEditing}
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Feather name="phone" size={20} color="#999" />
-                <TextInput
-                  style={styles.input}
-                  value={editedUser.phone ? editedUser.phone : "N/A"}
-                  onChangeText={(text) =>
-                    setEditedUser({ ...editedUser, phone: text })
-                  }
-                  editable={isEditing}
-                />
-              </View>
-
-              <View style={styles.inputContainer}>
-                <Feather name="map-pin" size={20} color="#999" />
-                <TextInput
-                  style={styles.input}
-                  value={editedUser.address ? editedUser.address : "N/A"}
-                  onChangeText={(text) =>
-                    setEditedUser({ ...editedUser, address: text })
-                  }
-                  editable={isEditing}
-                />
-              </View>
-              <View style={styles.LocationContainer}>
-                {isEditing && (
-                  <>
-                    <Button
-                      mode="outlined"
-                      onPress={getCurrentLocation}
-                      style={styles.locationButton}
-                      // icon="location-on"
-                    >
-                      Get Current Location
-                    </Button>
-
-                    {/* Displaying Latitude and Longitude */}
-                    {editedUser.latitude && editedUser.longitude && (
-                      <View style={styles.locationInfo}>
-                        <Text style={styles.locationText}>
-                          Latitude: {editedUser.latitude}
-                        </Text>
-                        <Text style={styles.locationText}>
-                          Longitude: {editedUser.longitude}
-                        </Text>
-                      </View>
-                    )}
-                  </>
-                )}
-              </View>
-
-              {/* Buttons */}
-              {isEditing ? (
-                <View
-                  style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    width: "80%",
-                  }}
-                >
-                  <Button
-                    mode="contained"
-                    onPress={() => {
-                      setEditedUser(user); // Reset changes
-                      setIsEditing(false);
-                    }}
-                    style={[styles.cancelButton, { marginRight: 10 }]}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    mode="contained"
-                    onPress={() => handleUpdateProfile(editedUser)}
-                    style={styles.saveButton}
-                  >
-                    Save Changes
-                  </Button>
-                </View>
-              ) : (
-                <Button
-                  mode="contained"
-                  onPress={() => setIsEditing(true)}
-                  style={styles.editButton}
-                >
-                  Edit Profile
-                </Button>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+          {/* Profile Header */}
+          <View style={styles.header}>
+            <View style={styles.avatarContainer}>
+              <Image
+                source={{
+                  uri: editedUser.profileImage || "https://via.placeholder.com/150/6366F1/FFFFFF?text=User",
+                }}
+                style={styles.avatar}
+              />
+              {isEditing && (
+                <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
+                  <Ionicons name="camera" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
               )}
+            </View>
 
-              <Button
-                mode="contained"
-                onPress={showDialog}
-                style={styles.logoutButton}
-              >
-                Logout
-              </Button>
-            </>
-          ) : (
-            <>
-              {" "}
-              <Text style={styles.errorText}>Failed to load user details.</Text>
-              <Button
-                mode="contained"
-                onPress={showDialog}
-                style={styles.logoutButton}
-              >
-                Logout
-              </Button>
-            </>
-          )}
-        </View>
+            {!isEditing && (
+              <Text style={styles.userName}>{editedUser.name}</Text>
+            )}
+          </View>
 
-        {/* Logout Confirmation Dialog */}
+          {/* Info Cards */}
+          <View style={styles.cardsContainer}>
+            {/* Name Card */}
+            <View style={styles.infoCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.iconBox}>
+                  <Ionicons name="person" size={18} color="#6366F1" />
+                </View>
+                <Text style={styles.cardLabel}>Name</Text>
+              </View>
+              <TextInput
+                style={[styles.cardInput, !isEditing && styles.cardInputDisabled]}
+                value={editedUser.name}
+                onChangeText={(text) => setEditedUser({ ...editedUser, name: text })}
+                editable={isEditing}
+                placeholder="Enter your name"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            {/* Email Card */}
+            <View style={styles.infoCard}>
+              <View style={styles.cardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: "#DBEAFE" }]}>
+                  <Ionicons name="mail" size={18} color="#3B82F6" />
+                </View>
+                <Text style={styles.cardLabel}>Email</Text>
+              </View>
+              <TextInput
+                style={[styles.cardInput, !isEditing && styles.cardInputDisabled]}
+                value={editedUser.email}
+                onChangeText={(text) => setEditedUser({ ...editedUser, email: text })}
+                editable={isEditing}
+                placeholder="Enter your email"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            {/* Phone Card */}
+            <View style={styles.infoCard}>
+              <View style={styles.cardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: "#D1FAE5" }]}>
+                  <Ionicons name="call" size={18} color="#10B981" />
+                </View>
+                <Text style={styles.cardLabel}>Phone</Text>
+              </View>
+              <TextInput
+                style={[styles.cardInput, !isEditing && styles.cardInputDisabled]}
+                value={editedUser.phone || ""}
+                onChangeText={(text) => setEditedUser({ ...editedUser, phone: text })}
+                editable={isEditing}
+                placeholder="Enter your phone"
+                placeholderTextColor="#9CA3AF"
+              />
+            </View>
+
+            {/* Address Card */}
+            <View style={styles.infoCard}>
+              <View style={styles.cardHeader}>
+                <View style={[styles.iconBox, { backgroundColor: "#FEF3C7" }]}>
+                  <Ionicons name="location" size={18} color="#F59E0B" />
+                </View>
+                <Text style={styles.cardLabel}>Address</Text>
+              </View>
+              <TextInput
+                style={[styles.cardInput, !isEditing && styles.cardInputDisabled]}
+                value={editedUser.address || ""}
+                onChangeText={(text) => setEditedUser({ ...editedUser, address: text })}
+                editable={isEditing}
+                placeholder="Enter your address"
+                placeholderTextColor="#9CA3AF"
+                multiline
+              />
+            </View>
+
+            {/* Location Card (only in edit mode) */}
+            {isEditing && (
+              <View style={styles.infoCard}>
+                <View style={styles.cardHeader}>
+                  <View style={[styles.iconBox, { backgroundColor: "#FCE7F3" }]}>
+                    <Ionicons name="navigate" size={18} color="#EC4899" />
+                  </View>
+                  <Text style={styles.cardLabel}>Location</Text>
+                </View>
+
+                <TouchableOpacity style={styles.locationButton} onPress={getCurrentLocation}>
+                  <Ionicons name="location" size={18} color="#6366F1" />
+                  <Text style={styles.locationButtonText}>Get Current Location</Text>
+                </TouchableOpacity>
+
+                {editedUser.latitude && editedUser.longitude && (
+                  <View style={styles.coordsContainer}>
+                    <View style={styles.coordRow}>
+                      <Text style={styles.coordLabel}>Lat:</Text>
+                      <Text style={styles.coordValue}>{editedUser.latitude}</Text>
+                    </View>
+                    <View style={styles.coordRow}>
+                      <Text style={styles.coordLabel}>Long:</Text>
+                      <Text style={styles.coordValue}>{editedUser.longitude}</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionsContainer}>
+            {isEditing ? (
+              <View style={styles.editActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setEditedUser(user);
+                    setIsEditing(false);
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={() => handleUpdateProfile(editedUser)}
+                >
+                  <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
+                <Ionicons name="create" size={18} color="#FFFFFF" />
+                <Text style={styles.editButtonText}>Edit Profile</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity style={styles.logoutButton} onPress={showDialog}>
+              <Ionicons name="log-out" size={18} color="#EF4444" />
+              <Text style={styles.logoutButtonText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        {/* Logout Dialog */}
         <Dialog visible={visible} onDismiss={hideDialog} style={styles.dialog}>
-          <Dialog.Title>Are you sure?</Dialog.Title>
+          <Dialog.Title style={styles.dialogTitle}>Logout</Dialog.Title>
           <Dialog.Content>
-            <Text>Do you really want to log out?</Text>
+            <Text style={styles.dialogText}>Are you sure you want to logout?</Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={hideDialog} textColor="#3E494A">
+            <Button onPress={hideDialog} textColor="#6B7280" labelStyle={{ fontWeight: "600" }}>
               Cancel
             </Button>
-            <Button onPress={handleLogout} textColor="#3E494A">
+            <Button onPress={handleLogout} textColor="#EF4444" labelStyle={{ fontWeight: "600" }}>
               Logout
             </Button>
           </Dialog.Actions>
@@ -381,66 +348,229 @@ const ProfileScreen = ({ navigation, route }) => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
   },
-  profileContainer: { position: "relative", marginBottom: 20 },
-  profileImage: { width: 100, height: 100, borderRadius: 50 },
-  editIcon: {
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+  },
+  errorText: {
+    fontSize: 15,
+    color: "#6B7280",
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  header: {
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  avatarContainer: {
+    position: "relative",
+    marginBottom: 16,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 4,
+    borderColor: "#F3F4F6",
+  },
+  cameraButton: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#007BFF",
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    backgroundColor: "#6366F1",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
   },
-  inputContainer: {
+  userName: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  cardsContainer: {
+    padding: 16,
+    gap: 12,
+  },
+  infoCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FFF",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 12,
-    width: "100%",
+    marginBottom: 10,
   },
-  input: { flex: 1, fontSize: 16, color: "#333", marginLeft: 10 },
-  editButton: { backgroundColor: "#007BFF", marginTop: 20 },
-  saveButton: { backgroundColor: "#28A745", marginTop: 20 },
-  logoutButton: { backgroundColor: "#FF4D4D", marginTop: 20 },
-  cancelButton: {
-    backgroundColor: "#6c757d", // Gray color for cancel button
-    marginTop: 20,
-    flex: 1,
+  iconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#EEF2FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  cardLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  cardInput: {
+    fontSize: 15,
+    color: "#111827",
+    fontWeight: "500",
+    paddingVertical: 4,
+  },
+  cardInputDisabled: {
+    color: "#4B5563",
   },
   locationButton: {
-    marginTop: 10,
-    width: "60%",
-    borderColor: "#007BFF", // Optional: Change border color
-  },
-  locationInfo: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 5,
-    width: "100%",
-  },
-  LocationContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
-    backgroundColor: "#FFF",
-    padding: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF2FF",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 10,
-    marginBottom: 12,
-    width: "100%",
+    gap: 8,
+    marginTop: 8,
+  },
+  locationButtonText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6366F1",
+  },
+  coordsContainer: {
+    marginTop: 12,
+    backgroundColor: "#F9FAFB",
+    padding: 10,
+    borderRadius: 8,
+    gap: 6,
+  },
+  coordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  coordLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "600",
+    width: 50,
+  },
+  coordValue: {
+    fontSize: 12,
+    color: "#111827",
+    fontWeight: "500",
+  },
+  actionsContainer: {
+    padding: 16,
+    gap: 10,
+    paddingBottom: 32,
+  },
+  editActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  editButton: {
+    flexDirection: "row",
+    backgroundColor: "#6366F1",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  editButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButtonText: {
+    color: "#6B7280",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  saveButton: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "#10B981",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  logoutButton: {
+    flexDirection: "row",
+    backgroundColor: "#FEF2F2",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#FEE2E2",
+  },
+  logoutButtonText: {
+    color: "#EF4444",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  logoutBtn: {
+    backgroundColor: "#EF4444",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+  },
+  logoutBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  dialog: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+  },
+  dialogTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  dialogText: {
+    fontSize: 15,
+    color: "#6B7280",
+    lineHeight: 22,
   },
 });
 
