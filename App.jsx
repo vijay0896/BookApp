@@ -6,6 +6,9 @@ import { ActivityIndicator, View, Button } from "react-native";
 import HomeTabs from "./Tabs/HomeTabs";
 import LoginScreen from "./Screens/AuthScreens/LoginScreen";
 import SignupScreen from "./Screens/AuthScreens/SignupScreen";
+import ForgotPasswordScreen from "./Screens/AuthScreens/ForgotPasswordScreen";
+import ResetPasswordScreen from "./Screens/AuthScreens/ResetPasswordScreen";
+import OTPVerifyScreen from "./Screens/AuthScreens/OTPVerifyScreen";
 import resaleBooksDetails from "./Screens/MyBooksDetails/ResaleDetailsScreen";
 import EBooksDetails from "./Screens/MyBooksDetails/EbookDetailsScreen";
 import PDFViewer from "./Screens/MyBooksDetails/PDFViewer";
@@ -183,6 +186,10 @@ export default function App() {
                 component={SignupScreen}
                 options={{ headerShown: false }}
               />
+              <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+              <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+              <Stack.Screen name="OTPVerify" component={OTPVerifyScreen} />
+
             </>
           )}
         </Stack.Navigator>
